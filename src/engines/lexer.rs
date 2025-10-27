@@ -124,11 +124,15 @@ impl Lexer {
         if c == '\'' {
             // if we get to a single quote, we keep reading until we get matching closing single quote
             // the token is string, and should not include quotes
-            self.tokens.push(Token::new(&TokenKinds::SINGLE_QUOTE, s));
+            //self.tokens.push(Token::new(&TokenKinds::SINGLE_QUOTE, s));
+            self.pos += 1;
             s = "".into();
             while self.has_next() {
                 c = self.current();
-                if c == '\'' { break; }
+                if c == '\'' { 
+                    // self.pos += 1;
+                    break; 
+                }
                 s = format!("{s}{c}");
                 self.pos += 1;
             }
@@ -151,6 +155,14 @@ impl Lexer {
             ':' => self.tokens.push(Token::new(&TokenKinds::COLON        , s)),
             ',' => self.tokens.push(Token::new(&TokenKinds::PERIOD       , s)),
             '=' => self.tokens.push(Token::new(&TokenKinds::EQUALS       , s)),
+            '@' => {
+                while self.next().is_ascii_digit() {
+                    self.pos += 1;                    
+                    c = self.current();
+                    s = format!("{s}{c}");
+                }
+                self.tokens.push(Token::new(&TokenKinds::PARAMETER, s));
+            },
             '!' | '>' | '<' => {
                 //if next char is equal, then it is not-equal token
                 if self.next() == '=' {

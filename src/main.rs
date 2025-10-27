@@ -23,7 +23,8 @@ fn main() -> std::io::Result<()> {
     println!("");
     println!("");
     println!("");
-    let expr = "select u.* from [all users] as u where u.[id] > 0.0 ;";
+    // let expr = "select [u].* from [all users] as [u] where [u].[id] >= @0 ;";
+    let expr = "insert into [all users] (id,name) values (@0,@1) ;";
     println!("-----------------------------------------");
     println!("{}",expr);
     println!("-----------------------------------------");
