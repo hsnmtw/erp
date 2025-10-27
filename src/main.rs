@@ -3,7 +3,7 @@
 // use crate::engines::db::{start_db_server, db_query};
 // use crate::engines::web::{start_web_server};
 
-use crate::engines::{lexer::Lexer};
+use crate::engines::{lexer::Lexer, tokens::TokenKinds};
 
 mod engines;
 
@@ -23,16 +23,13 @@ fn main() -> std::io::Result<()> {
     println!("");
     println!("");
     println!("");
-    let expr = 
-"create table users (
-   id    int not null primary key, 
-   name  varchar(20)
-);";
+    let expr = "select u.* from [all users] as u where u.[id] > 0.0 ;";
     println!("-----------------------------------------");
     println!("{}",expr);
     println!("-----------------------------------------");
 
     for token in Lexer::new(expr).tokens {
+        if token.kind == &TokenKinds::SPACE { continue; }
         println!("{}",token.to_string());
     }
     

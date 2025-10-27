@@ -8,40 +8,68 @@ pub struct Lexer {
 
 
 impl Lexer {
+    fn current(&self) -> char {
+        if self.pos < self.source.len() {
+            return self.source[self.pos];
+        }
+        char::MIN
+    }
+
+    fn next(&self) -> char {
+        if self.pos + 1 < self.source.len() {
+            return self.source[self.pos + 1];
+        }
+        char::MIN
+    }
+
+    fn has_next(&self) -> bool {
+        self.next() != char::MIN
+    }
+
     fn advance(&mut self) {
-        let mut c : char = self.source[self.pos];
+        let mut c : char = self.current();
         let mut s : String = format!("{}",c);
 
         if c.is_whitespace() {
-            while self.pos + 1 < self.source.len() && self.source[self.pos+1].is_whitespace() {
+            while self.next().is_whitespace() {
                 self.pos += 1;
             }
             self.tokens.push(Token::new(&TokenKinds::SPACE, " ".into()));
             return;
         }
         
-        if c.is_ascii_digit() {
+        if c.is_ascii_digit() || (c == '.' && self.next().is_ascii_digit()) {
             s = "".into();
-            while self.pos < self.source.len() {
-                c = self.source[self.pos];
-                if !c.is_ascii_digit() { break; }
+            while self.has_next() {
+                c = self.current();
+                if !(c.is_ascii_digit()|| (c == '.' && self.next().is_ascii_digit())) { 
+                    self.pos -= 1;
+                    break; 
+                }
                 s = format!("{s}{c}");                
                 self.pos += 1;
             }
-            self.pos -= 1;
             self.tokens.push(Token::new(&TokenKinds::NUMBER, s));
             return;
         }
         
-        if c.is_ascii_lowercase() || c.is_ascii_uppercase() {
+        let is_bracket = c == '[';
+        if c.is_ascii_lowercase() || c.is_ascii_uppercase() || is_bracket {
+            if is_bracket {
+                self.pos += 1;
+            }
             s = "".into();
-            while self.pos < self.source.len() {
-                c = self.source[self.pos];
-                if !c.is_ascii_alphanumeric() { break; }
+            while self.has_next() {
+                c = self.current();
+                if (!(is_bracket && c==' ') && !c.is_ascii_alphanumeric()) || (is_bracket && self.current() == ']') { 
+                    if self.current() != ']' {
+                        self.pos -= 1;
+                    }
+                    break; 
+                }
                 s = format!("{s}{c}");
                 self.pos += 1;
             }
-            self.pos -= 1;
             //self.tokens.push(Token::new(&TokenKinds::STRING, s));
             match s.to_uppercase().as_str() {
                 "SELECT"     => self.tokens.push(Token::new(&TokenKinds::SELECT  , s)),
@@ -98,18 +126,16 @@ impl Lexer {
             // the token is string, and should not include quotes
             self.tokens.push(Token::new(&TokenKinds::SINGLE_QUOTE, s));
             s = "".into();
-            while self.pos < self.source.len() {
-                c = self.source[self.pos];
+            while self.has_next() {
+                c = self.current();
                 if c == '\'' { break; }
                 s = format!("{s}{c}");
                 self.pos += 1;
             }
-            self.pos -= 1;
+            // self.pos -= 1;
             self.tokens.push(Token::new(&TokenKinds::STRING, s));
             return;
         }
-
-        
 
         match c {
             '[' => self.tokens.push(Token::new(&TokenKinds::OPEN_BRACKET , s)),
@@ -125,21 +151,34 @@ impl Lexer {
             ':' => self.tokens.push(Token::new(&TokenKinds::COLON        , s)),
             ',' => self.tokens.push(Token::new(&TokenKinds::PERIOD       , s)),
             '=' => self.tokens.push(Token::new(&TokenKinds::EQUALS       , s)),
-            '!' => {
+            '!' | '>' | '<' => {
                 //if next char is equal, then it is not-equal token
-                if self.pos+1 < self.source.len() && self.source[self.pos+1] == '=' {
-                    self.tokens.push(Token::new(&TokenKinds::NOT_EQUALS, s));
+                if self.next() == '=' {
+                    let kind = match c {
+                        '!' => &TokenKinds::NOT_EQUALS,
+                        '>' => &TokenKinds::MORE_THAN_EQUAL,
+                        '<' => &TokenKinds::LESS_THAN_EQUAL,
+                          _ => &TokenKinds::NOT
+                    };
+                    self.tokens.push(Token::new(kind, format!("{c}=")));
                     self.pos += 1;
                 } else {
-                    self.tokens.push(Token::new(&TokenKinds::NOT, s))
+                    let kind = match c {
+                        '>' => &TokenKinds::MORE_THAN,
+                        '<' => &TokenKinds::LESS_THAN,
+                          _ => &TokenKinds::NOT
+                    };
+                    self.tokens.push(Token::new(kind, s))
                 }
             },
             _ => {}
         };
+        return;
     }
+
     pub fn new(source : &str) -> Lexer {
         let mut lex = Lexer { tokens: Vec::new(), source: source.chars().collect(), pos: 0 };
-        while lex.pos < lex.source.len() {
+        while lex.has_next() {
             lex.advance();
             lex.pos += 1;
         }

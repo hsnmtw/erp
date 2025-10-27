@@ -1,5 +1,6 @@
 #[derive(Debug)]
 #[allow(unused)]
+#[derive(PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum TokenKinds {
     SELECT      = 0,
@@ -73,6 +74,10 @@ pub enum TokenKinds {
     PERIOD         ,
     EQUALS         ,
     NOT_EQUALS     ,
+    LESS_THAN      ,
+    LESS_THAN_EQUAL,
+    MORE_THAN      ,
+    MORE_THAN_EQUAL,
     EOF            ,
 }
 
@@ -86,7 +91,7 @@ fn get_token_name (kind: &'static TokenKinds) -> String {
 #[allow(unused)]
 #[derive(Debug)]
 pub struct Token {
-    kind: &'static TokenKinds,
+    pub kind: &'static TokenKinds,
     val: String
 }
 impl Token {    
@@ -100,6 +105,6 @@ impl Token {
         //     TokenKinds::PARAMETER | TokenKinds::NUMBER | TokenKinds::STRING => format!("{}",self.val),
         //     _ => get_token_name(self.kind)
         // }
-        format!("{} ({})", get_token_name(self.kind), self.val)
+        format!("{:15} ({})", get_token_name(self.kind), self.val)
     }
 }
