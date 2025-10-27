@@ -16,7 +16,7 @@ impl Lexer {
             while self.pos + 1 < self.source.len() && self.source[self.pos+1].is_whitespace() {
                 self.pos += 1;
             }
-            self.tokens.push(Token::new(&TokenKinds::SPACE, s));
+            self.tokens.push(Token::new(&TokenKinds::SPACE, " ".into()));
             return;
         }
         

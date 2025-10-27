@@ -1,5 +1,6 @@
 #[derive(Debug)]
 #[allow(unused)]
+#[allow(non_camel_case_types)]
 pub enum TokenKinds {
     SELECT      = 0,
     UPDATE         ,

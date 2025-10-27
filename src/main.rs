@@ -3,7 +3,7 @@
 // use crate::engines::db::{start_db_server, db_query};
 // use crate::engines::web::{start_web_server};
 
-use crate::engines::{lexer::Lexer, tokens};
+use crate::engines::{lexer::Lexer};
 
 mod engines;
 
@@ -23,7 +23,11 @@ fn main() -> std::io::Result<()> {
     println!("");
     println!("");
     println!("");
-    let expr = "select * from users;";
+    let expr = 
+"create table users (
+   id    int not null primary key, 
+   name  varchar(20)
+);";
     println!("-----------------------------------------");
     println!("{}",expr);
     println!("-----------------------------------------");
