@@ -23,7 +23,7 @@ fn main() -> std::io::Result<()> {
     println!("");
     println!("");
     println!("");
-    let expr = "1     +    [2+3]   +   (4*6)";
+    let expr = "select * from users;";
     println!("-----------------------------------------");
     println!("{}",expr);
     println!("-----------------------------------------");

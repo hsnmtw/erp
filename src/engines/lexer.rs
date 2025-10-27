@@ -88,7 +88,7 @@ impl Lexer {
                 "DATABASE"   => self.tokens.push(Token::new(&TokenKinds::DATABASE, s)),
                 "VIEW"       => self.tokens.push(Token::new(&TokenKinds::VIEW    , s)),
                 "HAVING"     => self.tokens.push(Token::new(&TokenKinds::HAVING  , s)),
-                _ => {}
+                           _ => self.tokens.push(Token::new(&TokenKinds::IDENTIFIER  , s)),
             }
             return;
         }
@@ -108,6 +108,8 @@ impl Lexer {
             self.tokens.push(Token::new(&TokenKinds::STRING, s));
             return;
         }
+
+        
 
         match c {
             '[' => self.tokens.push(Token::new(&TokenKinds::OPEN_BRACKET , s)),
