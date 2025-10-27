@@ -1,0 +1,13 @@
+[package]
+name = "erp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[profile.release]
+#panic = "abort"
+#opt-level = "z"
+#lto = true          # Enable link-time optimization
+#codegen-units = 1   # Reduce number of codegen units to increase optimizations
+#strip = true        # Strip symbols from binary*
