@@ -12,18 +12,18 @@ impl Lexer {
         if self.pos < self.source.len() {
             return self.source[self.pos];
         }
-        char::MIN
+        char::MAX
     }
 
     fn next(&self) -> char {
-        if self.pos + 1 < self.source.len() {
+        if self.has_next() {
             return self.source[self.pos + 1];
         }
-        char::MIN
+        char::MAX
     }
 
     fn has_next(&self) -> bool {
-        self.next() != char::MIN
+        self.pos + 1 < self.source.len()
     }
 
     fn advance(&mut self) {
