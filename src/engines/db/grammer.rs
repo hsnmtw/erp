@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug, path::Iter};
+use std::fmt::{Debug};
 
 use crate::engines::db::{lexer::Lexer, tokens::TokenKinds};
 
@@ -109,8 +109,39 @@ fn validate_update(lex: &Lexer) -> Option<String> {
 fn validate_insert(lex: &Lexer) -> Option<String> {
     /*
         1. INSERT INTO [TABLE] {Optional}([c1],[c2],[c3],...) VALUES (v1,v2,v3,...);
-        1. INSERT INTO [TABLE] {Optional}([c1],[c2],[c3],...) SELECT  v1,v2,v3,...;
+        2. INSERT INTO [TABLE] {Optional}([c1],[c2],[c3],...) SELECT  v1,v2,v3,...;
+
+        min length: 6
     */
+    if lex.tokens.len() < 6 { return Some(format!("SQL ERROR: minimum number of tokens for INSERT statement is {} while the number of provided tokens is {}", 6, lex.tokens.len())); }
+    if lex.tokens[0].kind != &TokenKinds::INSERT     { return Some(format!("SQL ERROR: token[{}] first token must be INSERT", 0)); }
+    if lex.tokens[1].kind != &TokenKinds::INTO       { return Some(format!("SQL ERROR: token[{}] expected '{:?}' but got '{}'",1, &TokenKinds::INTO,       lex.tokens[1].to_string())); }
+    if lex.tokens[2].kind != &TokenKinds::IDENTIFIER { return Some(format!("SQL ERROR: token[{}] expected '{:?}' but got '{}'",2, &TokenKinds::IDENTIFIER, lex.tokens[2].to_string())); }
+    if lex.tokens[3].kind != &TokenKinds::OPEN_PAREN 
+    && lex.tokens[4].kind != &TokenKinds::SELECT 
+    && lex.tokens[4].kind != &TokenKinds::VALUES     { return Some(format!("SQL ERROR: token[{}] expected '{:?}' but got '{}'",3, &[&TokenKinds::VALUES,&TokenKinds::SELECT], lex.tokens[4].to_string())); }
+    if lex.tokens[3].kind != &TokenKinds::OPEN_PAREN 
+    && lex.tokens[4].kind == &TokenKinds::VALUES     
+    && lex.tokens[5].kind != &TokenKinds::OPEN_PAREN { return Some(format!("SQL ERROR: token[{}] expected '{:?}' but got '{}'",5, &TokenKinds::OPEN_PAREN, lex.tokens[5].to_string())); }
+    if lex.tokens[3].kind != &TokenKinds::OPEN_PAREN 
+    && lex.tokens[4].kind == &TokenKinds::SELECT     
+    && lex.tokens[5].kind == &TokenKinds::OPEN_PAREN { return Some(format!("SQL ERROR: token[{}] expected '{:?}' but got '{}'",5, &[&TokenKinds::IDENTIFIER,&TokenKinds::NUMBER,&TokenKinds::STRING], lex.tokens[5].to_string())); }
+
+    let mut periods_col : u8 = 0;
+    let mut periods_val : u8 = 0;
+    let mut in_middle : bool = false;
+    for token in lex.tokens.iter() {
+        if token.kind == &TokenKinds::PERIOD {
+            if in_middle { periods_val += 1; }
+            else         { periods_col += 1; }
+        }
+        if token.kind == &TokenKinds::SELECT || token.kind ==  &TokenKinds::VALUES { in_middle = true; }
+    }
+
+    if periods_col > 0 && periods_col != periods_val {
+        return Some(format!("SQL ERROR: the number of columns {} is not same as the number of provided values {}", periods_col+1, periods_val+1));
+    }
+
     None
 }
 

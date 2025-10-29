@@ -91,7 +91,7 @@ fn get_token_name (kind: &'static TokenKinds) -> String {
 #[derive(Debug)]
 pub struct Token {
     pub kind: &'static TokenKinds,
-    val: String
+    pub val: String
 }
 impl Token {    
     pub fn new(kind: &'static TokenKinds, val : String) -> Token {

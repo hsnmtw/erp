@@ -24,21 +24,20 @@ fn main() -> std::io::Result<()> {
     println!("");
     println!("");
     // let expr = "select [u].* from [all users] as [u] where [u].[id] >= @0 ;";
-    let expr = "insert into [all users] (id,name) values (@0,@1);";
+    let expr = "insert into [all users] (id,name) values (@0,@1,@3);";
     println!("-----------------------------------------");
     println!("{}",expr);
     println!("-----------------------------------------");
 
     let lex = Lexer::new(expr);
 
-    for token in &lex.tokens {
-        println!("{}",token.to_string());
-    }
+    // for token in &lex.tokens {
+    //     println!("{}",token.to_string());
+    // }
     
-    match get_error(&lex) {
-        Some(x)=>println!("{x}"),
-        _=>{}
-    };
+    if let Some(x) = get_error(&lex) {
+        println!("{x}");
+    }
     
     Ok(())
 }
