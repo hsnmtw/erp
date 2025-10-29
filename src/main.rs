@@ -5,7 +5,7 @@
 
 use std::{io::{Write, stdin, stdout}, path::Path};
 
-use crate::engines::db::{grammer::{self, get_error}, lexer::Lexer, sql, tokens::TokenKinds};
+use crate::engines::db::{grammer::{self}, lexer::Lexer, sql, tokens::TokenKinds};
 
 mod engines;
 

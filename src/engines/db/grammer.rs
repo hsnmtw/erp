@@ -2,10 +2,6 @@ use std::fmt::{Debug};
 
 use crate::engines::db::{lexer::Lexer, tokens::TokenKinds};
 
-struct exp_next {
-    show : &'static[&'static TokenKinds],
-} 
-
 const fn get_accepted_next(kind : &TokenKinds) -> &[&TokenKinds] {
     match kind {
         &TokenKinds::SHOW => &[

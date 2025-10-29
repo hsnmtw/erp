@@ -1,10 +1,11 @@
-pub enum fs_type {
+pub enum FsType {
     DIRECTORY,
     FILE,
+    #[allow(unused)]
     ANY
 }
 
-pub fn list_fs(pth: &str, fstype : &fs_type) -> Vec<String> {
+pub fn list_fs(pth: &str, fstype : &FsType) -> Vec<String> {
     let mut folders = Vec::new();
     match std::fs::read_dir(pth) {
         Ok(entries) => {
@@ -12,13 +13,13 @@ pub fn list_fs(pth: &str, fstype : &fs_type) -> Vec<String> {
                 if let Ok(entry) = entry_result {
                     if let Ok(metadata) = entry.metadata() {
                         match fstype {
-                            &fs_type::DIRECTORY => {
+                            &FsType::DIRECTORY => {
                                 if metadata.is_dir() {
                                     let path: String = entry.file_name().into_string().unwrap();
                                     folders.push(path);
                                 }
                             },
-                            &fs_type::FILE => {
+                            &FsType::FILE => {
                                 if metadata.is_file() {
                                     let path: String = entry.file_name().into_string().unwrap();
                                     folders.push(path);
