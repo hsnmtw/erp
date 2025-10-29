@@ -13,6 +13,12 @@ const fn get_accepted_next(kind : &TokenKinds) -> &[&TokenKinds] {
             &TokenKinds::TABLES,
             &TokenKinds::VIEWES,
         ],
+        &TokenKinds::USE => &[
+            &TokenKinds::IDENTIFIER,
+        ],
+        &TokenKinds::EXIT|&TokenKinds::QUIT => &[
+            &TokenKinds::SEMI_COLON,
+        ],
         &TokenKinds::DATABASES|
         &TokenKinds::TABLES   |
         &TokenKinds::VIEWES   => &[ 
@@ -31,6 +37,7 @@ const fn get_accepted_next(kind : &TokenKinds) -> &[&TokenKinds] {
             &TokenKinds::IDENTIFIER,
         ],
         &TokenKinds::CREATE => &[
+            &TokenKinds::DATABASE,
             &TokenKinds::TABLE,
             &TokenKinds::VIEW,
         ],
@@ -62,7 +69,7 @@ pub fn join<T:Debug>(sep : &str, values : &[&T]) -> String {
 
 pub fn get_error(lex: &Lexer) -> Option<String> {
 
-    if lex.tokens.len() < 3 {
+    if lex.tokens.len() < 2 {
         return Some("the minimum number of tokens for a valid sql is 3".into());
     }
 
@@ -84,10 +91,26 @@ pub fn get_error(lex: &Lexer) -> Option<String> {
         &TokenKinds::DELETE => validate_delete(lex),
         &TokenKinds::CREATE => validate_create(lex),
         &TokenKinds::SHOW   => validate_show(lex),
+        &TokenKinds::USE    => validate_use(lex),
                           _ => None
     }
         
     // None
+}
+
+fn validate_use(lex: &Lexer) -> Option<String> {
+    /* 
+        use [database name];
+    */
+    if lex.tokens.len() != 3 
+    || lex.tokens[0].kind != &TokenKinds::USE
+    || lex.tokens[1].kind != &TokenKinds::IDENTIFIER
+    || lex.tokens[1].val.len() == 0
+    || lex.tokens[2].kind != &TokenKinds::SEMI_COLON {
+        return Some(format!("SQL ERROR: the use statement contains invalid argument '{}'", lex.to_string()));
+    }
+
+    None
 }
 
 #[allow(unused)]
@@ -152,5 +175,28 @@ fn validate_delete(lex: &Lexer) -> Option<String> {
 
 #[allow(unused)]
 fn validate_create(lex: &Lexer) -> Option<String> {
-    None
+    if lex.tokens.len() < 4 {
+        return Some("SQL ERROR: low number of arguments to create an object !".into());
+    }
+    /* 
+        CREATE DATABASE [db_name];
+        CREATE TABLE [table_name] ( [column_name] data_type <not null> <default ?> <primary key> <unique>, ... ); 
+        CREATE VIEW [view_name] AS {SELECT * FROM [table] <WHERE condition <AND condition>|OR condition>>}; 
+    */
+    match lex.tokens[1].kind {
+         &TokenKinds::DATABASE => {
+            if lex.tokens.len() > 4 {
+                return Some("SQL ERROR: incorrect number of arguments to create database !".into());
+            }
+            if lex.tokens[2].kind != &TokenKinds::IDENTIFIER {
+                return Some(format!("SQL ERROR: expected the name of the database but got {}", lex.tokens[1].to_string()));
+            }
+            None
+         },
+         &TokenKinds::TABLE
+        |&TokenKinds::VIEW => None,
+        _ => Some(format!("expected {:?} but got {:?}", &[&TokenKinds::DATABASE,&TokenKinds::TABLE,&TokenKinds::VIEW], lex.tokens[1].kind))
+    }
+    
+    // None
 }

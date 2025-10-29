@@ -1,8 +1,9 @@
-use crate::engines::db::tokens::{Token, TokenKinds};
+use crate::engines::db::{grammer::join, tokens::{Token, TokenKinds}};
 
 pub struct Lexer {
     pub tokens : Vec<Token>,
     source     : Vec<char>,
+    sql        : String,
     pos        : usize
 }
 
@@ -13,6 +14,10 @@ impl Lexer {
             return self.source[self.pos];
         }
         char::MAX
+    }
+
+    pub fn to_string(&self) -> &str {
+        &self.sql
     }
 
     fn next(&self) -> char {
@@ -75,6 +80,11 @@ impl Lexer {
             }
             //self.tokens.push(Token::new(&TokenKinds::STRING, s));
             match s.to_uppercase().as_str() {
+                "EXIT"       => self.tokens.push(Token::new(&TokenKinds::EXIT    , s)),
+                "QUIT"       => self.tokens.push(Token::new(&TokenKinds::QUIT    , s)),
+                "DEFAULT"    => self.tokens.push(Token::new(&TokenKinds::DEFAULT , s)),
+                "UNIQUE"     => self.tokens.push(Token::new(&TokenKinds::UNIQUE  , s)),
+                "USE"        => self.tokens.push(Token::new(&TokenKinds::USE     , s)),
                 "SELECT"     => self.tokens.push(Token::new(&TokenKinds::SELECT  , s)),
                 "UPDATE"     => self.tokens.push(Token::new(&TokenKinds::UPDATE  , s)),
                 "INSERT"     => self.tokens.push(Token::new(&TokenKinds::INSERT  , s)),
@@ -113,7 +123,7 @@ impl Lexer {
                 "LIMIT"      => self.tokens.push(Token::new(&TokenKinds::LIMIT   , s)),
                 "OFFSET"     => self.tokens.push(Token::new(&TokenKinds::OFFSET  , s)),
                 "SHOW"       => self.tokens.push(Token::new(&TokenKinds::SHOW    , s)),
-                "DATABASES"  => self.tokens.push(Token::new(&TokenKinds::DATABASE, s)),
+                "DATABASES"  => self.tokens.push(Token::new(&TokenKinds::DATABASES, s)),
                 "TABLES"     => self.tokens.push(Token::new(&TokenKinds::TABLES  , s)),
                 "VIEWES"     => self.tokens.push(Token::new(&TokenKinds::VIEWES  , s)),
                 "DATABASE"   => self.tokens.push(Token::new(&TokenKinds::DATABASE, s)),
@@ -192,7 +202,12 @@ impl Lexer {
     }
 
     pub fn new(source : &str) -> Lexer {
-        let mut lex = Lexer { tokens: Vec::new(), source: source.chars().collect(), pos: 0 };
+        let mut lex = Lexer { 
+            tokens: Vec::new(), 
+            source: source.chars().collect(), 
+            sql: source.into(),
+            pos: 0 
+        };
         while !lex.done() {
             lex.advance();
             lex.pos += 1;
