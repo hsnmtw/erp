@@ -3,7 +3,7 @@
 // use crate::engines::db::{start_db_server, db_query};
 // use crate::engines::web::{start_web_server};
 
-use crate::engines::{lexer::Lexer, tokens::TokenKinds};
+use crate::engines::db::{grammer::get_error, lexer::Lexer};
 
 mod engines;
 
@@ -24,15 +24,21 @@ fn main() -> std::io::Result<()> {
     println!("");
     println!("");
     // let expr = "select [u].* from [all users] as [u] where [u].[id] >= @0 ;";
-    let expr = "insert into [all users] (id,name) values (@0,@1) ;";
+    let expr = "insert into [all users] (id,name) values (@0,@1);";
     println!("-----------------------------------------");
     println!("{}",expr);
     println!("-----------------------------------------");
 
-    for token in Lexer::new(expr).tokens {
-        if token.kind == &TokenKinds::SPACE { continue; }
+    let lex = Lexer::new(expr);
+
+    for token in &lex.tokens {
         println!("{}",token.to_string());
     }
+    
+    match get_error(&lex) {
+        Some(x)=>println!("{x}"),
+        _=>{}
+    };
     
     Ok(())
 }

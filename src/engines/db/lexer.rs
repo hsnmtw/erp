@@ -1,4 +1,4 @@
-use crate::engines::tokens::{Token, TokenKinds};
+use crate::engines::db::tokens::{Token, TokenKinds};
 
 pub struct Lexer {
     pub tokens : Vec<Token>,
@@ -26,6 +26,10 @@ impl Lexer {
         self.pos + 1 < self.source.len()
     }
 
+    fn done(&self) -> bool {
+        self.pos >= self.source.len()
+    }
+
     fn advance(&mut self) {
         let mut c : char = self.current();
         let mut s : String = format!("{}",c);
@@ -34,7 +38,6 @@ impl Lexer {
             while self.next().is_whitespace() {
                 self.pos += 1;
             }
-            self.tokens.push(Token::new(&TokenKinds::SPACE, " ".into()));
             return;
         }
         
@@ -54,14 +57,14 @@ impl Lexer {
         }
         
         let is_bracket = c == '[';
-        if c.is_ascii_lowercase() || c.is_ascii_uppercase() || is_bracket {
+        if c.is_ascii_lowercase() || c.is_ascii_uppercase() || c=='_' || is_bracket {
             if is_bracket {
                 self.pos += 1;
             }
             s = "".into();
             while self.has_next() {
                 c = self.current();
-                if (!(is_bracket && c==' ') && !c.is_ascii_alphanumeric()) || (is_bracket && self.current() == ']') { 
+                if (!(is_bracket && c==' ') && !(c=='_'||c.is_ascii_alphanumeric())) || (is_bracket && self.current() == ']') { 
                     if self.current() != ']' {
                         self.pos -= 1;
                     }
@@ -190,7 +193,7 @@ impl Lexer {
 
     pub fn new(source : &str) -> Lexer {
         let mut lex = Lexer { tokens: Vec::new(), source: source.chars().collect(), pos: 0 };
-        while lex.has_next() {
+        while !lex.done() {
             lex.advance();
             lex.pos += 1;
         }
