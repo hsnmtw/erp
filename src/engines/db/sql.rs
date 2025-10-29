@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::engines::db::{grammer::{self, join}, lexer::Lexer, tokens::TokenKinds};
+use crate::engines::db::{filemgr::{fs_type, list_fs}, grammer::{self, join}, lexer::Lexer, tokens::TokenKinds};
 
 pub const HOME_DIR : &'static str = "./databases"; 
 
@@ -70,24 +70,8 @@ fn get_tables() -> Option<String> {
     a database is a folder in the home directory         
 */
 fn get_databases() -> Option<String> {
-    let home = Path::new(HOME_DIR);
-    let mut folders : Vec<String> = Vec::new();
-    match std::fs::read_dir(home) {
-        Ok(entries) => {
-            for entry_result in entries {
-                if let Ok(entry) = entry_result {
-                    if let Ok(metadata) = entry.metadata() {
-                        if metadata.is_dir() {
-                            let path: String = entry.file_name().into_string().unwrap();
-                            folders.push(path);
-                        }
-                    }
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Error reading directory: {}", e);
-        }
-    }
+    // let home = Path::new(HOME_DIR);
+    let folders = list_fs(HOME_DIR, &fs_type::DIRECTORY);
     Some(folders.join("\n"))
 }
+
