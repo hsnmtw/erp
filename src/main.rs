@@ -5,7 +5,7 @@
 
 use std::{io::{Write, stdin, stdout}, path::Path};
 
-use crate::engines::db::{grammer::{self}, lexer::Lexer, sql, tokens::TokenKinds};
+use crate::engines::db::{lexer::Lexer, sql, tokens::TokenKinds};
 
 mod engines;
 
@@ -40,10 +40,10 @@ fn main() -> std::io::Result<()> {
         let mut buf : String = String::new();
         stdin().read_line(&mut buf)?;
         let lex = Lexer::new(&buf);
-        if let Some(err) = grammer::get_error(&lex) {
-            println!("[FAILED] {err}");
-            continue;
-        }
+        // if let Some(err) = grammer::get_error(db.as_str(), &lex) {
+        //     println!("[FAILED] {err}");
+        //     continue;
+        // }
         match lex.tokens[0].kind {
             &TokenKinds::USE => {
                 let folder = format!("{}/{}", sql::HOME_DIR, lex.tokens[1].val);
@@ -60,9 +60,9 @@ fn main() -> std::io::Result<()> {
             },
             _ => {}
         }        
-        // for token in &lex.tokens {
-        //     println!("{}", token.to_string());
-        // }
+        for token in &lex.tokens {
+            println!("{}", token.to_string());
+        }
         println!("{}", sql::execute_sql(&db,&lex).unwrap_or("failed !!! for some unknown reason".into()));
     }
     

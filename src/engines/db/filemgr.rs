@@ -1,8 +1,9 @@
+#[derive(PartialEq)]
+#[allow(unused)]
 pub enum FsType {
-    DIRECTORY,
+    FLDR,
     FILE,
-    #[allow(unused)]
-    ANY
+    BOTH
 }
 
 pub fn list_fs(pth: &str, fstype : &FsType) -> Vec<String> {
@@ -10,27 +11,14 @@ pub fn list_fs(pth: &str, fstype : &FsType) -> Vec<String> {
     match std::fs::read_dir(pth) {
         Ok(entries) => {
             for entry_result in entries {
-                if let Ok(entry) = entry_result {
-                    if let Ok(metadata) = entry.metadata() {
-                        match fstype {
-                            &FsType::DIRECTORY => {
-                                if metadata.is_dir() {
-                                    let path: String = entry.file_name().into_string().unwrap();
-                                    folders.push(path);
-                                }
-                            },
-                            &FsType::FILE => {
-                                if metadata.is_file() {
-                                    let path: String = entry.file_name().into_string().unwrap();
-                                    folders.push(path);
-                                }
-                            },
-                            _ => {
-                                let path: String = entry.file_name().into_string().unwrap();
-                                folders.push(path);
-                            }
-                        };
-                    }
+                if let Ok(entry) = entry_result && let Ok(metadata) = entry.metadata() {
+                    let path: String = entry.file_name().into_string().unwrap();
+                    match fstype {
+                        &FsType::FLDR if metadata.is_dir()                       => folders.push(path),
+                        &FsType::FILE if metadata.is_file()                      => folders.push(path),
+                        &FsType::BOTH if metadata.is_dir() || metadata.is_file() => folders.push(path),
+                        _ => {}
+                    };
                 }
             }
         }

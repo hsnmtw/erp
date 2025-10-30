@@ -17,8 +17,11 @@ pub enum TokenKinds {
     KEY            ,
     NOT            ,
     NULL           ,
-    INT            ,
-    VARCHAR        ,
+    CASE           ,
+    WHEN           ,
+    THEN           ,
+    END            ,
+    DATA_TYPE      ,
     AS             ,
     JOIN           ,
     FROM           ,
@@ -82,7 +85,7 @@ pub enum TokenKinds {
     LESS_THAN_EQUAL,
     MORE_THAN      ,
     MORE_THAN_EQUAL,
-    EOF
+    // EOF
 }
 
 

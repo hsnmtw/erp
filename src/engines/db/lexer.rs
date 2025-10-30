@@ -39,11 +39,61 @@ impl Lexer {
         let mut c : char = self.current();
         let mut s : String = format!("{}",c);
 
+        let len: usize = self.source.len();
+
         if c.is_whitespace() {
             while self.next().is_whitespace() {
                 self.pos += 1;
             }
             return;
+        }
+
+        // if self.pos+4<len
+        // && let Some(x) = self.sql.get(self.pos..self.pos+3) 
+        // && (x.to_uppercase() == "INT" || x.to_uppercase() == "BIT") 
+        // && (self.source[self.pos+4] == ' ' || self.source[self.pos+4] == ')' || self.source[self.pos+4] == ',') {
+        //     self.pos += 2;
+        //     self.tokens.push(Token::new(&TokenKinds::DATA_TYPE, x.into()));
+        //     return;
+        // }
+
+        // if self.pos+5<len
+        // && let Some(x) = self.sql.get(self.pos..self.pos+5) 
+        // && x.to_uppercase() == "FLOAT" 
+        // && (self.source[self.pos+5] == ' ' 
+        // ||  self.source[self.pos+5] == ')' 
+        // ||  self.source[self.pos+5] == ',') {
+        //     self.pos += 4;
+        //     self.tokens.push(Token::new(&TokenKinds::DATA_TYPE, x.into()));
+        //     return;
+        // }
+
+        if self.pos+9<len
+        && let Some(x) = self.sql.get(self.pos..self.pos+8) 
+        && x.to_uppercase() == "VARCHAR(" {
+            let p = self.pos;
+            while self.pos < len && self.source[self.pos] != ')' {
+                self.pos += 1;
+            }
+            if self.source[self.pos] == ')' {
+                self.pos += 1;
+                self.tokens.push(Token::new(&TokenKinds::DATA_TYPE, self.sql.get(p..self.pos).unwrap_or("0").into()));
+                return;
+            }
+        }
+
+        if self.pos+10<len
+        && let Some(x) = self.sql.get(self.pos..self.pos+9) 
+        && x.to_uppercase() == "NVARCHAR(" {
+            let p = self.pos;
+            while self.pos < len && self.source[self.pos] != ')' {
+                self.pos += 1;
+            }
+            if self.source[self.pos] == ')' {
+                self.pos += 1;
+                self.tokens.push(Token::new(&TokenKinds::DATA_TYPE, self.sql.get(p..self.pos).unwrap_or("0").into()));
+                return;
+            }
         }
         
         if c.is_ascii_digit() || (c == '.' && self.next().is_ascii_digit()) {
@@ -79,58 +129,67 @@ impl Lexer {
                 self.pos += 1;
             }
             //self.tokens.push(Token::new(&TokenKinds::STRING, s));
-            match s.to_uppercase().as_str() {
-                "EXIT"       => self.tokens.push(Token::new(&TokenKinds::EXIT    , s)),
-                "QUIT"       => self.tokens.push(Token::new(&TokenKinds::QUIT    , s)),
-                "DEFAULT"    => self.tokens.push(Token::new(&TokenKinds::DEFAULT , s)),
-                "UNIQUE"     => self.tokens.push(Token::new(&TokenKinds::UNIQUE  , s)),
-                "USE"        => self.tokens.push(Token::new(&TokenKinds::USE     , s)),
-                "SELECT"     => self.tokens.push(Token::new(&TokenKinds::SELECT  , s)),
-                "UPDATE"     => self.tokens.push(Token::new(&TokenKinds::UPDATE  , s)),
-                "INSERT"     => self.tokens.push(Token::new(&TokenKinds::INSERT  , s)),
-                "INTO"       => self.tokens.push(Token::new(&TokenKinds::INTO    , s)),
-                "VALUES"     => self.tokens.push(Token::new(&TokenKinds::VALUES  , s)),
-                "DELETE"     => self.tokens.push(Token::new(&TokenKinds::DELETE  , s)),
-                "CREATE"     => self.tokens.push(Token::new(&TokenKinds::CREATE  , s)),
-                "TABLE"      => self.tokens.push(Token::new(&TokenKinds::TABLE   , s)),
-                "COLUMN"     => self.tokens.push(Token::new(&TokenKinds::COLUMN  , s)),
-                "ALTER"      => self.tokens.push(Token::new(&TokenKinds::ALTER   , s)),
-                "PRIMARY"    => self.tokens.push(Token::new(&TokenKinds::PRIMARY , s)),
-                "KEY"        => self.tokens.push(Token::new(&TokenKinds::KEY     , s)),
-                "NOT"        => self.tokens.push(Token::new(&TokenKinds::NOT     , s)),
-                "NULL"       => self.tokens.push(Token::new(&TokenKinds::NULL    , s)),
-                "INT"        => self.tokens.push(Token::new(&TokenKinds::INT     , s)),
-                "VARCHAR"    => self.tokens.push(Token::new(&TokenKinds::VARCHAR , s)),
-                "AS"         => self.tokens.push(Token::new(&TokenKinds::AS      , s)),
-                "JOIN"       => self.tokens.push(Token::new(&TokenKinds::JOIN    , s)),
-                "FROM"       => self.tokens.push(Token::new(&TokenKinds::FROM    , s)),
-                "ON"         => self.tokens.push(Token::new(&TokenKinds::ON      , s)),
-                "LEFT"       => self.tokens.push(Token::new(&TokenKinds::LEFT    , s)),
-                "RIGHT"      => self.tokens.push(Token::new(&TokenKinds::RIGHT   , s)),
-                "WHERE"      => self.tokens.push(Token::new(&TokenKinds::WHERE   , s)),
-                "AND"        => self.tokens.push(Token::new(&TokenKinds::AND     , s)),
-                "OR"         => self.tokens.push(Token::new(&TokenKinds::OR      , s)),
-                "IN"         => self.tokens.push(Token::new(&TokenKinds::IN      , s)),
-                "COUNT"      => self.tokens.push(Token::new(&TokenKinds::COUNT   , s)),
-                "SUM"        => self.tokens.push(Token::new(&TokenKinds::SUM     , s)),
-                "AVG"        => self.tokens.push(Token::new(&TokenKinds::AVG     , s)),
-                "GROUP"      => self.tokens.push(Token::new(&TokenKinds::GROUP   , s)),
-                "BY"         => self.tokens.push(Token::new(&TokenKinds::BY      , s)),
-                "ORDER"      => self.tokens.push(Token::new(&TokenKinds::ORDER   , s)),
-                "ASC"        => self.tokens.push(Token::new(&TokenKinds::ASC     , s)),
-                "DESC"       => self.tokens.push(Token::new(&TokenKinds::DESC    , s)),
-                "DISTINCT"   => self.tokens.push(Token::new(&TokenKinds::DISTINCT, s)),
-                "LIMIT"      => self.tokens.push(Token::new(&TokenKinds::LIMIT   , s)),
-                "OFFSET"     => self.tokens.push(Token::new(&TokenKinds::OFFSET  , s)),
-                "SHOW"       => self.tokens.push(Token::new(&TokenKinds::SHOW    , s)),
-                "DATABASES"  => self.tokens.push(Token::new(&TokenKinds::DATABASES, s)),
-                "TABLES"     => self.tokens.push(Token::new(&TokenKinds::TABLES  , s)),
-                "VIEWES"     => self.tokens.push(Token::new(&TokenKinds::VIEWES  , s)),
-                "DATABASE"   => self.tokens.push(Token::new(&TokenKinds::DATABASE, s)),
-                "VIEW"       => self.tokens.push(Token::new(&TokenKinds::VIEW    , s)),
-                "HAVING"     => self.tokens.push(Token::new(&TokenKinds::HAVING  , s)),
-                           _ => self.tokens.push(Token::new(&TokenKinds::IDENTIFIER  , s)),
-            }
+                match s.to_uppercase().as_str() {
+                    "EXIT"       => self.tokens.push(Token::new(&TokenKinds::EXIT    , s)),
+                    "CASE"       => self.tokens.push(Token::new(&TokenKinds::CASE    , s)),
+                    "WHEN"       => self.tokens.push(Token::new(&TokenKinds::WHEN    , s)),
+                    "THEN"       => self.tokens.push(Token::new(&TokenKinds::THEN    , s)),
+                    "END"        => self.tokens.push(Token::new(&TokenKinds::END     , s)),
+                    "QUIT"       => self.tokens.push(Token::new(&TokenKinds::QUIT    , s)),
+                    "DEFAULT"    => self.tokens.push(Token::new(&TokenKinds::DEFAULT , s)),
+                    "UNIQUE"     => self.tokens.push(Token::new(&TokenKinds::UNIQUE  , s)),
+                    "USE"        => self.tokens.push(Token::new(&TokenKinds::USE     , s)),
+                    "SELECT"     => self.tokens.push(Token::new(&TokenKinds::SELECT  , s)),
+                    "UPDATE"     => self.tokens.push(Token::new(&TokenKinds::UPDATE  , s)),
+                    "INSERT"     => self.tokens.push(Token::new(&TokenKinds::INSERT  , s)),
+                    "INTO"       => self.tokens.push(Token::new(&TokenKinds::INTO    , s)),
+                    "VALUES"     => self.tokens.push(Token::new(&TokenKinds::VALUES  , s)),
+                    "DELETE"     => self.tokens.push(Token::new(&TokenKinds::DELETE  , s)),
+                    "CREATE"     => self.tokens.push(Token::new(&TokenKinds::CREATE  , s)),
+                    "TABLE"      => self.tokens.push(Token::new(&TokenKinds::TABLE   , s)),
+                    "COLUMN"     => self.tokens.push(Token::new(&TokenKinds::COLUMN  , s)),
+                    "ALTER"      => self.tokens.push(Token::new(&TokenKinds::ALTER   , s)),
+                    "PRIMARY"    => self.tokens.push(Token::new(&TokenKinds::PRIMARY , s)),
+                    "KEY"        => self.tokens.push(Token::new(&TokenKinds::KEY     , s)),
+                    "NOT"        => self.tokens.push(Token::new(&TokenKinds::NOT     , s)),
+                    "NULL"       => self.tokens.push(Token::new(&TokenKinds::NULL    , s)),
+                    "AS"         => self.tokens.push(Token::new(&TokenKinds::AS      , s)),
+                    "JOIN"       => self.tokens.push(Token::new(&TokenKinds::JOIN    , s)),
+                    "FROM"       => self.tokens.push(Token::new(&TokenKinds::FROM    , s)),
+                    "ON"         => self.tokens.push(Token::new(&TokenKinds::ON      , s)),
+                    "LEFT"       => self.tokens.push(Token::new(&TokenKinds::LEFT    , s)),
+                    "RIGHT"      => self.tokens.push(Token::new(&TokenKinds::RIGHT   , s)),
+                    "WHERE"      => self.tokens.push(Token::new(&TokenKinds::WHERE   , s)),
+                    "AND"        => self.tokens.push(Token::new(&TokenKinds::AND     , s)),
+                    "OR"         => self.tokens.push(Token::new(&TokenKinds::OR      , s)),
+                    "IN"         => self.tokens.push(Token::new(&TokenKinds::IN      , s)),
+                    "COUNT"      => self.tokens.push(Token::new(&TokenKinds::COUNT   , s)),
+                    "SUM"        => self.tokens.push(Token::new(&TokenKinds::SUM     , s)),
+                    "AVG"        => self.tokens.push(Token::new(&TokenKinds::AVG     , s)),
+                    "GROUP"      => self.tokens.push(Token::new(&TokenKinds::GROUP   , s)),
+                    "BY"         => self.tokens.push(Token::new(&TokenKinds::BY      , s)),
+                    "ORDER"      => self.tokens.push(Token::new(&TokenKinds::ORDER   , s)),
+                    "ASC"        => self.tokens.push(Token::new(&TokenKinds::ASC     , s)),
+                    "DESC"       => self.tokens.push(Token::new(&TokenKinds::DESC    , s)),
+                    "DISTINCT"   => self.tokens.push(Token::new(&TokenKinds::DISTINCT, s)),
+                    "LIMIT"      => self.tokens.push(Token::new(&TokenKinds::LIMIT   , s)),
+                    "OFFSET"     => self.tokens.push(Token::new(&TokenKinds::OFFSET  , s)),
+                    "SHOW"       => self.tokens.push(Token::new(&TokenKinds::SHOW    , s)),
+                    "DATABASES"  => self.tokens.push(Token::new(&TokenKinds::DATABASES, s)),
+                    "TABLES"     => self.tokens.push(Token::new(&TokenKinds::TABLES  , s)),
+                    "VIEWES"     => self.tokens.push(Token::new(&TokenKinds::VIEWES  , s)),
+                    "DATABASE"   => self.tokens.push(Token::new(&TokenKinds::DATABASE, s)),
+                    "VIEW"       => self.tokens.push(Token::new(&TokenKinds::VIEW    , s)),
+                    "HAVING"     => self.tokens.push(Token::new(&TokenKinds::HAVING  , s)),
+                    
+                    "FLOAT"      |
+                    "INT"        |
+                    "BIT"        |
+                    "DATETIME"   |
+                    "TIME"       |
+                    "DATE"       => self.tokens.push(Token::new(&TokenKinds::DATA_TYPE   , s)),
+                               _ => self.tokens.push(Token::new(&TokenKinds::IDENTIFIER  , s)),
+                }
             return;
         }
 
@@ -198,7 +257,6 @@ impl Lexer {
             },
             _ => {}
         };
-        return;
     }
 
     pub fn new(source : &str) -> Lexer {
